@@ -30,5 +30,12 @@ build/
 
 ### VS Code ###
 .vscode/
+# Ignore compiled classes
+target/
+*.class
+
+# Ignore sensitive properties
+src/main/resources/application-local.properties
+.env
 
 HELP.md
