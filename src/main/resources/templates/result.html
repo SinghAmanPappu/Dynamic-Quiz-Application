@@ -1,11 +1,76 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz Result</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary-gradient: linear-gradient(135deg, #8e2de2, #4a00e0); --bg-gradient: linear-gradient(to right, #9d318e, #c77ab4); --light-bg: #ffffff; --text-main: #2d3436; --border-color: #f1f2f6; --correct-bg: #e6ffed; --correct-border: #2ecc71; --wrong-bg: #ffebee; --wrong-border: #e74c3c; }
+        
+        /* Fixed CSS for scrolling */
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background: var(--bg-gradient); 
+            margin: 0; 
+            padding: 40px 20px; 
+            box-sizing: border-box; 
+        }
+
+        /* Center the container horizontally */
+        .container { 
+            width: 100%; 
+            max-width: 800px; 
+            margin: 0 auto; 
+        }
+
+        .card { background: var(--light-bg); border-radius: 12px; padding: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 30px; text-align: center; }
+        .score-circle { width: 120px; height: 120px; border-radius: 50%; background: var(--primary-gradient); color: white; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: 600; margin: 0 auto 20px auto; }
+        h2 { color: var(--text-main); margin-top: 0; }
+        .review-item { background: var(--light-bg); border-radius: 12px; padding: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border-left: 5px solid var(--border-color); text-align: left; }
+        .review-item.correct { border-left-color: var(--correct-border); background-color: var(--correct-bg); }
+        .review-item.wrong { border-left-color: var(--wrong-border); background-color: var(--wrong-bg); }
+        .question-text { font-weight: 600; font-size: 1.1rem; margin-bottom: 15px; color: var(--text-main); }
+        .answer-line { font-size: 0.95rem; margin-bottom: 5px; color: #636e72; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; color: white; font-size: 0.8rem; font-weight: 600; margin-left: 10px; vertical-align: middle; }
+        .badge-correct { background-color: var(--correct-border); }
+        .badge-wrong { background-color: var(--wrong-border); }
+        .btn-retry { display: inline-block; background: var(--primary-gradient); color: white; text-decoration: none; padding: 12px 40px; border-radius: 30px; font-weight: 600; margin-top: 20px; transition: opacity 0.3s; }
+        .btn-retry:hover { opacity: 0.9; }
+    </style>
+</head>
 <body>
-<div th:fragment="resultBody">
-    <h2>Quiz Complete!</h2>
-    <p>Your Score: <span th:text="${score}"></span> / <span th:text="${total}"></span></p>
-    <br>
-    <a href="/api/">Try Another Topic</a>
-</div>
+
+    <div class="container">
+        <!-- Score Card -->
+        <div class="card">
+            <div class="score-circle" th:text="|${score}/${total}|">3/5</div>
+            <h2>Quiz Complete!</h2>
+            <p>You scored <span th:text="${score}"></span> out of <span th:text="${total}"></span></p>
+            <a href="/api/" class="btn-retry">Try Another Topic</a>
+        </div>
+
+        <!-- Detailed Review Card -->
+        <div th:each="q, iter : ${questions}" class="review-item" 
+             th:classappend="${userAnswers[iter.index] != null and userAnswers[iter.index].equalsIgnoreCase(q.answer)} ? 'correct' : 'wrong'">
+            
+            <div class="question-text">
+                <span th:text="|${iter.index + 1}. ${q.question}|"></span>
+                <span class="badge" 
+                      th:classappend="${userAnswers[iter.index] != null and userAnswers[iter.index].equalsIgnoreCase(q.answer)} ? 'badge-correct' : 'badge-wrong'" 
+                      th:text="${userAnswers[iter.index] != null and userAnswers[iter.index].equalsIgnoreCase(q.answer)} ? 'Correct' : 'Wrong'"></span>
+            </div>
+
+            <div class="answer-line">
+                <strong>Your Answer:</strong> <span th:text="${userAnswers[iter.index] ?: 'Not Answered'}">Not Answered</span>
+            </div>
+
+            <!-- Only show correct answer if they got it wrong -->
+            <div class="answer-line" th:if="${userAnswers[iter.index] == null or !userAnswers[iter.index].equalsIgnoreCase(q.answer)}">
+                <strong>Correct Answer:</strong> <span th:text="${q.answer}" style="color: #2ecc71; font-weight: 600;"></span>
+            </div>
+
+        </div>
+    </div>
+
 </body>
 </html>

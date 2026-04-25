@@ -5,108 +5,127 @@
     <title>Generate Quiz</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, #8e2de2, #4a00e0);
-            --bg-gradient: linear-gradient(to right, #9d318e, #c77ab4);
-            --light-bg: #ffffff;
-            --text-main: #2d3436;
-            --border-color: #f1f2f6;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: var(--bg-gradient);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 600px;
-            padding: 20px;
-        }
-
-        .quiz-card {
-            background: var(--light-bg);
-            border-radius: 12px;
-            padding: 50px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        h2 {
-            color: #8e2de2;
-            font-weight: 600;
-            margin-bottom: 30px;
-            font-size: 1.8rem;
-        }
-
-        textarea {
-            width: 100%;
-            padding: 20px;
-            border: 2px solid var(--border-color);
-            border-radius: 15px;
-            font-family: inherit;
-            font-size: 1rem;
-            resize: none;
-            box-sizing: border-box;
-            outline: none;
-            transition: border-color 0.3s;
-            margin-bottom: 20px;
-        }
-
-        textarea:focus {
-            border-color: #e0a3ff;
-        }
-
-        .btn-generate {
-            display: inline-block;
-            background: var(--primary-gradient);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            border-radius: 30px; /* Matching the pill shape */
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, opacity 0.3s;
-            width: 100%;
-        }
-
-        .btn-generate:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-        }
-
-        .placeholder-hint {
-            color: #b2bec3;
-            font-size: 0.9rem;
-            margin-top: 10px;
-        }
+        :root { --primary-gradient: linear-gradient(135deg, #8e2de2, #4a00e0); --bg-gradient: linear-gradient(to right, #9d318e, #c77ab4); --light-bg: #ffffff; --text-main: #2d3436; --border-color: #f1f2f6; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg-gradient); margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .container { width: 100%; max-width: 600px; padding: 20px; }
+        .quiz-card { background: var(--light-bg); border-radius: 12px; padding: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
+        h2 { color: #8e2de2; font-weight: 600; margin-bottom: 30px; font-size: 1.8rem; }
+        textarea, select { width: 100%; padding: 15px; border: 2px solid var(--border-color); border-radius: 15px; font-family: inherit; font-size: 1rem; box-sizing: border-box; outline: none; transition: border-color 0.3s; margin-bottom: 15px; }
+        textarea:focus, select:focus { border-color: #e0a3ff; }
+        .options-row { display: flex; gap: 15px; margin-bottom: 20px; }
+        .options-row > div { flex: 1; text-align: left; }
+        .options-row label { font-size: 0.9rem; font-weight: 600; color: #636e72; margin-bottom: 5px; display: block; }
+        .btn-generate { display: inline-block; background: var(--primary-gradient); color: white; border: none; padding: 15px 40px; border-radius: 30px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: transform 0.2s, opacity 0.3s; width: 100%; }
+        .btn-generate:hover { opacity: 0.9; transform: translateY(-2px); }
+        .placeholder-hint { color: #b2bec3; font-size: 0.9rem; margin-top: 15px; }
+        .tab-container { display: flex; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); }
+        .tab { flex: 1; padding: 10px; cursor: pointer; font-weight: 600; color: #b2bec3; border-bottom: 3px solid transparent; }
+        .tab.active { color: #8e2de2; border-bottom-color: #8e2de2; }
+        .dropzone { border: 3px dashed var(--border-color); border-radius: 15px; padding: 30px; margin-bottom: 15px; transition: border-color 0.3s, background-color 0.3s; cursor: pointer; }
+        .dropzone.dragover { border-color: #8e2de2; background-color: #fdf2ff; }
+        .dropzone p { margin: 0; color: #636e72; }
+        .dropzone .file-name { margin-top: 10px; font-weight: 600; color: #8e2de2; }
+        #loadingOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
+        .spinner { border: 6px solid #f3f3f3; border-top: 6px solid #8e2de2; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .error-message { color: red; margin-bottom: 15px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="quiz-card">
-        <h2>Quiz Generator</h2>
-
-        <form action="/api/generate" method="post">
-            <textarea name="prompt" rows="5" 
-                      placeholder="Enter topic like Java, DBMS, OS..." 
-                      required></textarea>
-            
-            <button type="submit" class="btn-generate">Generate Quiz</button>
-            
-            <div class="placeholder-hint">
-                Type a subject to start your learning journey.
-            </div>
-        </form>
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <p style="margin-top: 15px; color: #8e2de2; font-weight: 600;">AI is generating your quiz...</p>
     </div>
-</div>
+
+    <div class="container">
+        <div class="quiz-card">
+            <h2>Quiz Generator</h2>
+            <div class="error-message" th:if="${error}" th:text="${error}"></div>
+
+            <div class="tab-container">
+                <div class="tab active" id="tabTopic" onclick="switchTab('topic')">By Topic</div>
+                <div class="tab" id="tabPdf" onclick="switchTab('pdf')">By PDF (RAG)</div>
+            </div>
+
+            <!-- Topic Form -->
+            <form id="topicForm" action="/api/generate" method="post" style="display:block;">
+                <textarea name="prompt" rows="3" placeholder="Enter topic like Java, DBMS, OS..." required></textarea>
+                
+                <div class="options-row">
+                    <div>
+                        <label>Difficulty</label>
+                        <select name="difficulty">
+                            <option value="Easy">Easy</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="Hard">Hard</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>No. of Questions</label>
+                        <select name="questionCount">
+                            <option value="5" selected>5</option>
+                            <option value="10">10</option>
+                            <option value="15">15</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-generate">Generate Quiz</button>
+            </form>
+
+            <!-- PDF Form -->
+            <form id="pdfForm" action="/api/upload-pdf" method="post" enctype="multipart/form-data" style="display:none;">
+                <div class="dropzone" id="dropzone">
+                    <p>Drag & Drop your PDF here</p>
+                    <p style="font-size: 0.8rem;">or click to select file</p>
+                    <input type="file" name="file" id="fileInput" accept="application/pdf" required hidden>
+                    <div class="file-name" id="fileName"></div>
+                </div>
+               <textarea name="prompt" rows="2" placeholder="Leave blank for a general quiz, or type a specific topic..."></textarea>
+                <div class="options-row">
+                    <div>
+                        <label>Difficulty</label>
+                        <select name="difficulty">
+                            <option value="Easy">Easy</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="Hard">Hard</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>No. of Questions</label>
+                        <select name="questionCount">
+                            <option value="5" selected>5</option>
+                            <option value="10">10</option>
+                            <option value="15">15</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-generate">Generate from PDF</button>
+            </form>
+
+            <div class="placeholder-hint">Customize your quiz difficulty and length.</div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(type) {
+            document.getElementById('topicForm').style.display = type === 'topic' ? 'block' : 'none';
+            document.getElementById('pdfForm').style.display = type === 'pdf' ? 'block' : 'none';
+            document.getElementById('tabTopic').classList.toggle('active', type === 'topic');
+            document.getElementById('tabPdf').classList.toggle('active', type === 'pdf');
+        }
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const fileNameDisplay = document.getElementById('fileName');
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+        dropzone.addEventListener('dragleave', () => { dropzone.classList.remove('dragover'); });
+        dropzone.addEventListener('drop', (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); if (e.dataTransfer.files.length) { fileInput.files = e.dataTransfer.files; fileNameDisplay.innerText = e.dataTransfer.files[0].name; } });
+        fileInput.addEventListener('change', () => { if (fileInput.files.length) { fileNameDisplay.innerText = fileInput.files[0].name; } });
+        document.querySelectorAll("form").forEach(form => { form.addEventListener("submit", function() { document.getElementById("loadingOverlay").style.display = "flex"; }); });
+    </script>
 
 </body>
 </html>

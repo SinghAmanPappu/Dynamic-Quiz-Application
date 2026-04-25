@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"
-      xmlns:th="http://www.thymeleaf.org"
->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Quiz</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
@@ -30,7 +28,6 @@
             padding: 20px;
         }
 
-        /* The Card Design */
         .quiz-card {
             background: var(--light-bg);
             border-radius: 12px;
@@ -59,7 +56,6 @@
             font-weight: 600;
         }
 
-        /* Option Styling */
         .options-list {
             display: flex;
             flex-direction: column;
@@ -85,7 +81,6 @@
             font-size: 1rem;
         }
 
-        /* Hover & Checked States */
         .option-label:hover {
             border-color: #d1d8e0;
             background-color: #f8f9fa;
@@ -97,7 +92,6 @@
             color: #8e2de2;
         }
 
-        /* Next Button */
         .btn-next {
             display: block;
             margin-left: auto;
@@ -120,7 +114,7 @@
 <body>
 
 <div id="questionContainer">
-    <div th:replace="fragments/question :: questionFragment"></div>
+    <div th:replace="~{fragments/question :: questionFragment}"></div>
 </div>
 
 <script>
@@ -142,11 +136,19 @@
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded"
                 },
-                body: "answer=" + selected.value
+                body: "answer=" + encodeURIComponent(selected.value)
             })
-            .then(res => res.text())
-            .then(data => {
-                document.getElementById("questionContainer").innerHTML = data;
+            .then(res => {
+                // CHECK IF THE SERVER TRIED TO REDIRECT US
+                if (res.redirected) {
+                    // Force a full page reload to the result URL
+                    window.location.href = res.url;
+                } else {
+                    // Otherwise, just swap the question fragment like normal
+                    res.text().then(data => {
+                        document.getElementById("questionContainer").innerHTML = data;
+                    });
+                }
             });
         }
     });
